@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Ultimate Adventure Game</title>
+<style>
+* { box-sizing: border-box; }
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: #e0e0e0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+  padding: 20px;
+}
+
+.screen { 
+  display: none; 
+  max-width: 900px;
+  width: 100%;
+  background: rgba(40, 40, 40, 0.9);
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+.visible { display: block; }
+
+h1, h2 { 
+  margin: 0 0 20px 0;
+  color: #f0f0f0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+h1 { font-size: 2.5em; }
+h2 { font-size: 2em; }
+
+button {
+  background: linear-gradient(135deg, #4a4a4a 0%, #3a3a3a 100%);
+  border: 1px solid #666;
+  color: #e0e0e0;
+  padding: 12px 24px;
+  margin: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5a5a5a 0%, #4a4a4a 100%);
+  border-color: #777;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+/* Intro Screen */
+#introText {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 1.2em;
+  line-height: 1.6;
+  text-align: left;
+  max-width: 700px;
+  margin: 0 auto 20px auto;
+}
+
+.cutscene-text, .dialogue-text, #introText {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 1.1em;
+  line-height: 1.6;
+  text-align: left;
+  max-width: 700px;
+  margin: 0 auto 30px auto;
+  word-break: break-word;
+  white-space: pre-line;
+  overflow-wrap: break-word;
+}
+
+#introText {
+  margin-bottom: 20px;
+}
+
+#cutsceneText {
+  /* Remove pre formatting, use div instead */
+  font-family: inherit;
+}
+
+#dialogueText {
+  font-family: inherit;
+}
+
+#nameInputSection {
+  margin-top: 30px;
+}
+
+#playerNameInput {
+  background: rgba(60, 60, 60, 0.8);
+  border: 1px solid #666;
+  color: #e0e0e0;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 16px;
+  margin: 10px;
+  width: 250px;
+}
+
+#playerNameInput:focus {
+  outline: none;
+  border-color: #888;
+  box-shadow: 0 0 10px rgba(136, 136, 136, 0.3);
+}
+
+/* Shop Screen */
+.shop-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 30px;
+  align-items: start;
+  margin-top: 20px;
+}
+
+#items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shop-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(50, 50, 50, 0.6);
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 16px 20px;
+  transition: background 0.3s ease;
+}
+
+.shop-row:hover {
+  background: rgba(60, 60, 60, 0.7);
+}
+
+.shop-row .item-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.shop-row strong {
+  font-size: 1.1em;
+  color: #f0f0f0;
+}
+
+.shop-row .price {
+  color: #ffd700;
+  font-size: 0.9em;
+  margin-top: 4px;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.stats-panel {
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.stats-panel h3 {
+  margin: 0 0 15px 0;
+  color: #f0f0f0;
+  font-size: 1.2em;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+  padding: 8px 0;
+  border-bottom: 1px solid #444;
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-value {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+#inventorySection {
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 15px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+#inventoryList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#inventoryList li {
+  background: rgba(50, 50, 50, 0.5);
+  margin: 8px 0;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  text-align: left;
+}
+
+/* Combat Screen */
+#combat {
+  position: relative;
+  min-height: 500px;
+}
+
+.battle-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.combat-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 20px 0 30px 0;
+}
+
+.stat-card {
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+}
+
+.stat-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.1em;
+}
+
+.health-bar {
+  background: #333;
+  border-radius: 10px;
+  height: 20px;
+  margin: 10px 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.health-fill {
+  background: linear-gradient(90deg, #ff4444 0%, #ff6666 50%, #ff4444 100%);
+  height: 100%;
+  transition: width 0.5s ease;
+  border-radius: 10px;
+}
+
+.health-fill.player {
+  background: linear-gradient(90deg, #44ff44 0%, #66ff66 50%, #44ff44 100%);
+}
+
+.health-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  font-size: 0.9em;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+#attackOptions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 20px 0;
+}
+
+#attackOptions button {
+  min-width: auto;
+}
+
+.combat-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+#combatLog {
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 15px;
+  max-height: 200px;
+  overflow-y: auto;
+  text-align: left;
+  font-family: monospace;
+  font-size: 0.9em;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  margin-top: 20px;
+}
+
+/* Menu */
+#gameMenu {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+#menuBtn {
+  background: rgba(40, 40, 40, 0.9);
+  border: 1px solid #666;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  font-size: 18px;
+  min-width: auto;
+}
+
+#menuDropdown {
+  position: absolute;
+  top: 60px;
+  right: 0;
+  background: rgba(40, 40, 40, 0.95);
+  border: 1px solid #666;
+  border-radius: 8px;
+  min-width: 150px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+#menuDropdown.hidden { display: none; }
+
+#menuDropdown button {
+  width: 100%;
+  text-align: left;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 12px 16px;
+  min-width: auto;
+}
+
+#menuDropdown button:hover {
+  background: rgba(60, 60, 60, 0.8);
+}
+
+#menuDropdown button:first-child { border-radius: 8px 8px 0 0; }
+#menuDropdown button:last-child { border-radius: 0 0 8px 8px; }
+
+/* Cutscene */
+#cutsceneText {
+  /* Remove pre formatting, use div instead */
+  font-family: inherit;
+}
+
+/* Decision screens */
+.decision-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .screen { padding: 20px; }
+  .shop-container { grid-template-columns: 1fr; gap: 20px; }
+  .combat-stats { grid-template-columns: 1fr; }
+  #attackOptions { grid-template-columns: 1fr; }
+  .decision-buttons { flex-direction: column; align-items: center; }
+}
+</style>
+</head>
+<body>
+
+<div id="home" class="screen visible">
+  <h1>⚔️ Ultimate Adventure Game</h1>
+  <p style="font-size: 1.1em; margin: 20px 0;">Embark on an epic journey through the dark forest</p>
+  <button onclick="startGame()" style="font-size: 16px; padding: 15px 30px;">Start Game</button>
+</div>
+
+<div id="introScreen" class="screen">
+  <div id="introText" class="cutscene-text"></div>
+  <p id="clickPrompt"><em>Click anywhere or press any key to continue...</em></p>
+  <div id="nameInputSection" style="display:none;">
+    <p style="font-size: 1.2em; margin-bottom: 20px;"><strong>Before you go… tell me your name, brave soul.</strong></p>
+    <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="20">
+    <br>
+    <button onclick="submitName()" style="margin-top: 15px;">Continue Adventure</button>
+  </div>
+</div>
+
+<div id="dialogue" class="screen">
+  <h2>🧙‍♂️ The Wizard</h2>
+  <div id="wizardText" class="dialogue-text"></div>
+  <button onclick="goToShop()">Continue to Shop</button>
+</div>
+
+<div id="shop" class="screen">
+  <h2>🏪 Adventure Shop</h2>
+  
+  <div class="shop-container">
+    <div id="items"></div>
+
+    <div class="sidebar">
+      <div class="stats-panel">
+        <h3>Player Stats</h3>
+        <div class="stat-row">
+          <span>Coins:</span>
+          <span class="stat-value" id="coins">60</span>
+        </div>
+        <div class="stat-row">
+          <span>Health:</span>
+          <span class="stat-value"><span id="playerHealthShop">100</span>/<span id="playerMaxHealthShop">100</span></span>
+        </div>
+      </div>
+      
+      <button onclick="toggleInventory()">📦 Toggle Inventory</button>
+      <div id="inventorySection" style="display:none;">
+        <h3 style="margin: 0 0 15px 0;">Inventory</h3>
+        <ul id="inventoryList"></ul>
+      </div>
+      <button onclick="exitShop()" id="exitShopBtn" style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); font-weight: bold;">🚪 Exit Shop</button>
+    </div>
+  </div>
+</div>
+
+<div id="combat" class="screen">
+  <div class="battle-header">
+    <h2>⚔️ Battle: <span id="enemyName"></span></h2>
+  </div>
+  
+  <div class="combat-stats">
+    <div class="stat-card">
+      <h3>🛡️ Your Health</h3>
+      <div class="health-bar">
+        <div class="health-fill player" id="playerHealthBar"></div>
+        <div class="health-text" id="playerHealthText">100/100</div>
+      </div>
+      <p>Coins: <span class="stat-value" id="coinDisplay">60</span></p>
+    </div>
+    
+    <div class="stat-card">
+      <h3>👹 Enemy Health</h3>
+      <div class="health-bar">
+        <div class="health-fill" id="enemyHealthBar"></div>
+        <div class="health-text" id="enemyHealthText">100/100</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="attackOptions"></div>
+  
+  <div class="combat-actions">
+    <button onclick="usePotion()" style="background: linear-gradient(135deg, #ff4757 0%, #ff3838 100%);">🧪 Use Potion</button>
+  </div>
+
+  <div id="combatLog"></div>
+</div>
+
+<div id="gameMenu">
+  <button id="menuBtn">☰</button>
+  <div id="menuDropdown" class="hidden">
+    <button onclick="saveGame()">💾 Save Game</button>
+    <button onclick="loadGame()">📂 Load Game</button>
+    <button onclick="quitGame()">🏠 Quit Game</button>
+  </div>
+</div>
+
+<div id="shopDecision2" class="screen">
+  <h2>🛍️ Another Shop?</h2>
+  <p style="font-size: 1.1em; margin: 20px 0;">You see another shop ahead. Do you want to enter and upgrade your gear?</p>
+  <div class="decision-buttons">
+    <button onclick="enterSecondShop()">Yes, Enter Shop</button>
+    <button onclick="skipToOrc()">No, Continue Journey</button>
+  </div>
+</div>
+
+<div id="shopDecision3" class="screen">
+  <h2>🐲 Final Shop</h2>
+  <p style="font-size: 1.1em; margin: 20px 0;">This is your last chance to prepare before facing the Dragon. Enter the final shop?</p>
+  <div class="decision-buttons">
+    <button onclick="enterThirdShop()">Yes, Final Preparations</button>
+    <button onclick="fightDragon()">No, Face the Dragon</button>
+  </div>
+</div>
+
+<div id="cutsceneScreen" class="screen">
+  <div id="cutsceneText" class="cutscene-text"></div>
+  <button id="cutsceneButton" style="margin-top: 30px;">Continue</button>
+</div>
+
+<div id="gameover" class="screen">
+  <h1>💀 Game Over</h1>
+  <p id="gameoverMessage" style="font-size: 1.2em; margin: 30px 0;"></p>
+  <button onclick="location.reload()" style="background: linear-gradient(135deg, #ff4757 0%, #ff3838 100%);">🔄 Restart</button>
+</div>
+
+<div id="win" class="screen">
+  <h1>🏆 Victory!</h1>
+  <p style="font-size: 1.2em; margin: 30px 0;">You defeated all the bosses and saved the realm!</p>
+  <button onclick="location.reload()" style="background: linear-gradient(135deg, #2ed573 0%, #1e90ff 100%);">🎮 Play Again</button>
+</div>
+
+<script>
+let player_coins = 60, player_health = 100, max_health = 100;
+let player_inventory = {}, player_items_use_value = {};
+let player_armour = false, total_potion_uses = 0;
+let player_name = "", introIndex = 0, nameSubmitted = false;
+let currentEnemy = "", enemy_health = 0;
+
+// Game state tracking for save/load
+let currentScreen = "home";
+let combatLog = "";
+let inventoryVisible = false;
+
+// Enemy stats
+const enemies = {
+  goblin: { name: "Goblin", health: 60, attacks: { Bite: 15, Claw: 20 }, reward: 30 },
+  wolf: { name: "Evil Wolf", health: 85, attacks: { Bite: 20, Charge: 35 }, reward: 50 },
+  evolved: { name: "Evolved Goblin", health: 95, attacks: { Kick: 50, Punch: 35 }, reward: 45 },
+  orc: { name: "Orc", health: 100, attacks: { Slam: 30, Bash: 35 }, reward: 60 },
+  bigwolf: { name: "Big Wolf", health: 120, attacks: { Slash: 45, Bite: 55 }, reward: 80 },
+  orc_lord: { name: "Orc Lord", health: 140, attacks: { Cleave: 50, Roar: 60 }, reward: 120 },
+  dragon: { name: "Dragon", health: 180, attacks: { "Fire Breath": 70, "Tail Whip": 55 }, reward: 300 }
+};
+
+// Shop items
+const shopItems = [
+  { name: "healthpotion", label: "Health Potion", description: "heals 60 HP", price: 40, value: 60, unique: false },
+  { name: "knife", label: "Knife", description: "20 damage", price: 20, value: 20, unique: true },
+  { name: "sword", label: "Sword", description: "40 damage", price: 40, value: 40, unique: true },
+  { name: "pistol", label: "Pistol", description: "55 damage", price: 55, value: 55, unique: true },
+  { name: "assault rifle", label: "Assault Rifle", description: "75 damage", price: 75, value: 75, unique: true },
+  { name: "shotgun", label: "Shotgun", description: "90 damage", price: 90, value: 90, unique: true },
+  { name: "sniper", label: "Sniper", description: "100 damage", price: 100, value: 100, unique: true },
+  { name: "armour", label: "Armour", description: "+120 max health", price: 120, unique: true }
+];
+
+// Intro lines
+let introLines = [
+"EXT. DARK FOREST — NIGHT",
+"(The moonlight filters through the dense canopy. An ADVENTURER, rugged and weary, stumbles through the thick undergrowth.)",
+"ADVENTURER\n(to himself)\nLost. How in the blazes did I get so far off the path?",
+"(Suddenly, a faint glow emanates from deeper in the forest.)",
+"ADVENTURER\nWhat in the world is that?",
+"(He cautiously approaches the glow. A WIZARD sits on a moss-covered rock.)",
+"WIZARD\nAh, a wanderer in the woods...",
+"ADVENTURER\n(startled but curious)\nWho are you?",
+"WIZARD\n(smiling faintly)\nA mere traveler, like yourself...",
+"ADVENTURER\nI'm looking for a way out of this cursed forest. I have... enemies to face.",
+"WIZARD\nEnemies, you say? Such a heavy word...",
+"ADVENTURER\n(steely-eyed)\nI know their deeds. That's enough.",
+"WIZARD\nThen perhaps these will aid you on your quest..."
+];
+
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("visible"));
+  const el = document.getElementById(id);
+  el.classList.add("visible");
+  currentScreen = id;
+  el.scrollTop = 0;
+}
+
+// Menu functionality
+document.getElementById("menuBtn").addEventListener("click", () => {
+  document.getElementById("menuDropdown").classList.toggle("hidden");
+});
+
+// Close menu when clicking outside
+document.addEventListener("click", (e) => {
+  if (!document.getElementById("gameMenu").contains(e.target)) {
+    document.getElementById("menuDropdown").classList.add("hidden");
+  }
+});
+
+function saveGame() {
+    const combatLogElement = document.getElementById("combatLog");
+    const currentCombatLog = combatLogElement ? combatLogElement.innerText : "";
+    
+    const inventorySection = document.getElementById("inventorySection");
+    const isInventoryVisible = inventorySection && inventorySection.style.display !== "none";
+    
+    const wizardText = document.getElementById("wizardText");
+    const currentWizardText = wizardText ? wizardText.innerText : "";
+    
+    const cutsceneText = document.getElementById("cutsceneText");
+    const currentCutsceneText = cutsceneText ? cutsceneText.innerText : "";
+
+    let cutsceneContext = null;
+    if (currentScreen === "cutsceneScreen" && currentCutsceneText) {
+        if (currentCutsceneText.includes("EVIL WOLF")) {
+            if (currentCutsceneText.includes("You dare light a fire")) {
+                cutsceneContext = "wolfIntro";
+            } else {
+                cutsceneContext = "wolfOutro";
+            }
+        } else if (currentCutsceneText.includes("EVOLVED GOBLIN")) {
+            cutsceneContext = "evolvedIntro";
+        } else if (currentCutsceneText.includes("strange amulet around its neck")) {
+            cutsceneContext = "evolvedOutro";
+        } else if (currentCutsceneText.includes("ORC") && currentCutsceneText.includes("Easy prey")) {
+            cutsceneContext = "orcIntro";
+        } else if (currentCutsceneText.includes("distant howls")) {
+            cutsceneContext = "orcOutro";
+        } else if (currentCutsceneText.includes("BIG WOLF")) {
+            cutsceneContext = "bigWolfIntro";
+        } else if (currentCutsceneText.includes("shard... it pulses")) {
+            cutsceneContext = "bigWolfOutro";
+        } else if (currentCutsceneText.includes("ORC LORD")) {
+            cutsceneContext = "orcLordIntro";
+        } else if (currentCutsceneText.includes("One day. I can afford")) {
+            cutsceneContext = "breakDay";
+        }
+    }
+
+    const gameData = {
+        playerHealth: player_health,
+        playerMaxHealth: max_health,
+        coins: player_coins,
+        inventory: player_inventory,
+        itemsUseValue: player_items_use_value,
+        armour: player_armour,
+        totalPotionUses: total_potion_uses,
+        playerName: player_name,
+        currentScreen: currentScreen,
+        currentEnemy: currentEnemy,
+        enemyHealth: enemy_health,
+        combatLog: currentCombatLog,
+        inventoryVisible: isInventoryVisible,
+        wizardText: currentWizardText,
+        cutsceneText: currentCutsceneText,
+        cutsceneContext: cutsceneContext,
+        introIndex: introIndex,
+        nameSubmitted: nameSubmitted,
+        saveTime: new Date().toLocaleString()
+    };
+    
+    const savedData = JSON.stringify(gameData);
+    try {
+        localStorage.setItem("ultimateAdventureGameSave", savedData);
+        alert(`Game saved successfully! (${gameData.saveTime})`);
+    } catch (e) {
+        alert("Failed to save game. Storage may be full.");
+    }
+}
+
+function loadGame() {
+    const savedData = localStorage.getItem("ultimateAdventureGameSave");
+    if (!savedData) {
+        alert("No saved game found!");
+        return;
+    }
+    
+    try {
+        const gameData = JSON.parse(savedData);
+        
+        player_health = gameData.playerHealth || 100;
+        max_health = gameData.playerMaxHealth || 100;
+        player_coins = gameData.coins || 60;
+        player_inventory = gameData.inventory || {};
+        player_items_use_value = gameData.itemsUseValue || {};
+        player_armour = gameData.armour || false;
+        total_potion_uses = gameData.totalPotionUses || 0;
+        player_name = gameData.playerName || "";
+        
+        currentEnemy = gameData.currentEnemy || "";
+        enemy_health = gameData.enemyHealth || 0;
+        introIndex = gameData.introIndex || 0;
+        nameSubmitted = gameData.nameSubmitted || false;
+        
+        showScreen(gameData.currentScreen || "home");
+        
+        if (gameData.currentScreen === "combat") {
+            if (currentEnemy && enemies[currentEnemy]) {
+                document.getElementById('enemyName').textContent = enemies[currentEnemy].name;
+                updateCombatUI();
+                document.getElementById('combatLog').innerText = gameData.combatLog || "";
+                renderAttackOptions();
+            }
+        } else if (gameData.currentScreen === "shop") {
+            updateShop();
+        } else if (gameData.currentScreen === "dialogue") {
+            const wizardTextEl = document.getElementById("wizardText");
+            if (wizardTextEl && gameData.wizardText) {
+                wizardTextEl.innerText = gameData.wizardText;
+            }
+        } else if (gameData.currentScreen === "cutsceneScreen") {
+            const cutsceneTextEl = document.getElementById("cutsceneText");
+            if (cutsceneTextEl && gameData.cutsceneText) {
+                cutsceneTextEl.innerText = gameData.cutsceneText;
+            }
+            restoreCutsceneContinuation(gameData.cutsceneContext);
+        } else if (gameData.currentScreen === "introScreen") {
+            const introTextEl = document.getElementById("introText");
+            const clickPrompt = document.getElementById("clickPrompt");
+            const nameInputSection = document.getElementById("nameInputSection");
+            
+            if (introIndex < introLines.length) {
+                if (introTextEl) introTextEl.innerText = introLines[introIndex];
+                
+                if (nameSubmitted) {
+                    if (clickPrompt) clickPrompt.style.display = "none";
+                    if (nameInputSection) nameInputSection.style.display = "none";
+                    setTimeout(() => {
+                        document.removeEventListener("click", advanceIntro);
+                        document.removeEventListener("keydown", introKeyHandler);
+                        player_coins = 60; 
+                        updateCoinDisplays();
+                        showScreen("dialogue");
+                        document.getElementById("wizardText").innerText = `Ah, welcome, ${player_name}. The forest is dark... but you are not alone.`;
+                    }, 1000);
+                } else {
+                    if (introIndex === introLines.length - 1) {
+                        if (clickPrompt) clickPrompt.style.display = "none";
+                        if (nameInputSection) nameInputSection.style.display = "block";
+                    } else {
+                        if (clickPrompt) clickPrompt.style.display = "block";
+                        if (nameInputSection) nameInputSection.style.display = "none";
+                        document.addEventListener("click", advanceIntro);
+                        document.addEventListener("keydown", introKeyHandler);
+                    }
+                }
+            }
+        }
+        
+        const inventorySection = document.getElementById("inventorySection");
+        if (inventorySection) {
+            inventorySection.style.display = gameData.inventoryVisible ? "block" : "none";
+        }
+        
+        updateCoinDisplays();
+        updateInventoryUI();
+        
+        alert(`Game loaded successfully! (Saved: ${gameData.saveTime || "Unknown time"})`);
+        
+    } catch (error) {
+        alert("Error loading saved game!");
+        console.error("Load game error:", error);
+    }
+}
+function quitGame() {
+    location.reload();
+}
+// Utility: Split text into sentences (handles dialogue and cutscene style)
+function splitSentences(text) {
+  // Split by line breaks and sentence-ending punctuation
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  let sentences = [];
+  lines.forEach(line => {
+    // If it's a dialogue line (e.g., "WIZARD: ..."), keep as one sentence
+    if (/^[A-Z .\-()]+:/.test(line)) {
+      sentences.push(line);
+    } else {
+      // Otherwise, split by . ! ? but keep the punctuation
+      let parts = line.split(/([.?!])\s+/g);
+      for (let i = 0; i < parts.length; i += 2) {
+        let sentence = parts[i];
+        if (sentence) {
+          let punct = parts[i + 1] || '';
+          sentences.push((sentence + punct).trim());
+        }
+      }
+    }
+  });
+  return sentences.filter(Boolean);
+}
+
+// Animate text sentence by sentence in a container, clearing previous text for each sentence
+function animateSentences(sentences, containerId, onDone) {
+  const container = document.getElementById(containerId);
+  let idx = 0;
+  function showNext() {
+    if (idx < sentences.length) {
+      container.textContent = sentences[idx];
+      idx++;
+    } else if (typeof onDone === "function") {
+      onDone();
+    }
+  }
+  showNext();
+  function handler(e) {
+    if (e.type === "keydown" && !["Enter", " "].includes(e.key)) return;
+    showNext();
+    if (idx >= sentences.length) {
+      document.removeEventListener("click", handler);
+      document.removeEventListener("keydown", handler);
+      if (typeof onDone === "function") onDone();
+    }
+  }
+  document.addEventListener("click", handler);
+  document.addEventListener("keydown", handler);
+}
+
+// --- INTRO ---
+function startGame() {
+  if (localStorage.getItem("ultimateAdventureGameSave")) {
+    if (confirm("Load previous save?")) {
+      loadGame();
+      return;
+    }
+  }
+  introIndex = 0; 
+  nameSubmitted = false;
+  showScreen("introScreen");
+  document.getElementById("clickPrompt").style.display = "block";
+  document.getElementById("nameInputSection").style.display = "none";
+  animateSentences(splitSentences(introLines[introIndex]), "introText", function nextIntro() {
+    if (introIndex < introLines.length - 1) {
+      introIndex++;
+      animateSentences(splitSentences(introLines[introIndex]), "introText", nextIntro);
+      if (introIndex === introLines.length - 1) {
+        document.getElementById("clickPrompt").style.display = "none";
+        document.getElementById("nameInputSection").style.display = "block";
+      }
+    }
+  });
+}
+
+// --- DIALOGUE ---
+function updateDialogue(text, onDone) {
+  showScreen("dialogue");
+  animateSentences(splitSentences(text), "wizardText", onDone);
+}
+
+// --- CUTSCENES ---
+function showCutscene(text, onContinue) {
+  showScreen('cutsceneScreen');
+  animateSentences(splitSentences(text), "cutsceneText", function() {
+    // Show continue button after all sentences
+    const btn = document.getElementById('cutsceneButton');
+    btn.style.display = "block";
+    btn.onclick = function() {
+      btn.onclick = null;
+      btn.style.display = "none";
+      if (typeof onContinue === 'function') onContinue();
+    };
+  });
+  // Hide continue button until all sentences shown
+  document.getElementById('cutsceneButton').style.display = "none";
+}
+
+// --- Name submission ---
+function submitName() {
+  let val = document.getElementById("playerNameInput").value.trim();
+  if(!val) return;
+  player_name = val; 
+  nameSubmitted = true;
+  document.getElementById("nameInputSection").style.display = "none";
+  introIndex++;
+  animateSentences(splitSentences("(The Wizard taps his staff on the ground, a gust of wind blows, and he vanishes...)"), "introText", function() {
+    player_coins = 60; 
+    updateCoinDisplays();
+    updateDialogue(`Ah, welcome, ${player_name}. The forest is dark... but you are not alone.`, function() {
+      // Show "Continue to Shop" button after dialogue
+      document.querySelector("#dialogue button").focus();
+    });
+  });
+}
+
+// --- Restore continue button for cutscene on loadGame ---
+function restoreCutsceneContinuation(cutsceneContext) {
+    const btn = document.getElementById('cutsceneButton');
+    if (!btn || !cutsceneContext) return;
+    btn.style.display = "block";
+    switch(cutsceneContext) {
+        case "wolfIntro":
+            btn.onclick = () => startEnemyPhase('wolf');
+            break;
+        case "wolfOutro":
+            btn.onclick = () => showScreen('shopDecision2');
+            break;
+        case "evolvedIntro":
+            btn.onclick = () => startEnemyPhase('evolved');
+            break;
+        case "evolvedOutro":
+            btn.onclick = () => showCutscene(orcIntroText, () => startEnemyPhase('orc'));
+            break;
+        case "orcIntro":
+            btn.onclick = () => startEnemyPhase('orc');
+            break;
+        case "orcOutro":
+            btn.onclick = () => showCutscene(bigWolfIntroText, () => startEnemyPhase('bigwolf'));
+            break;
+        case "bigWolfIntro":
+            btn.onclick = () => startEnemyPhase('bigwolf');
+            break;
+        case "bigWolfOutro":
+            btn.onclick = () => showCutscene(orcLordIntroText, () => startEnemyPhase('orc_lord'));
+            break;
+        case "orcLordIntro":
+            btn.onclick = () => startEnemyPhase('orc_lord');
+            break;
+        case "breakDay":
+            btn.onclick = () => showScreen('shopDecision3');
+            break;
+        default:
+            btn.onclick = () => showScreen('home');
+    }
+}
+
+// === INTRO ===
+function startGame() {
+  if (localStorage.getItem("ultimateAdventureGameSave")) {
+    if (confirm("Load previous save?")) {
+      loadGame();
+      return;
+    }
+  }
+
+  introIndex = 0; 
+  nameSubmitted = false;
+  document.getElementById("introText").innerText = introLines[introIndex];
+  document.getElementById("clickPrompt").style.display = "block";
+  document.getElementById("nameInputSection").style.display = "none";
+  showScreen("introScreen");
+  document.addEventListener("click", advanceIntro);
+  document.addEventListener("keydown", introKeyHandler);
+}
+
+function introKeyHandler(e) {
+  if(["Enter"," "].includes(e.key)) advanceIntro();
+}
+
+function advanceIntro() {
+  if(!nameSubmitted) {
+    if(introIndex < introLines.length - 1) {
+      introIndex++;
+      document.getElementById("introText").textContent = introLines[introIndex];
+      if(introIndex === introLines.length - 1) {
+        document.getElementById("clickPrompt").style.display = "none";
+        document.getElementById("nameInputSection").style.display = "block";
+      }
+    }
+  } else {
+    document.removeEventListener("click", advanceIntro);
+    document.removeEventListener("keydown", introKeyHandler);
+    player_coins = 60; 
+    updateCoinDisplays();
+    showScreen("dialogue");
+    updateDialogue(`Ah, welcome, ${player_name}. The forest is dark... but you are not alone.`);
+  }
+}
+
+function submitName() {
+  let val = document.getElementById("playerNameInput").value.trim();
+  if(!val) return;
+  player_name = val; 
+  nameSubmitted = true;
+  document.getElementById("nameInputSection").style.display = "none";
+  introIndex++;
+  document.getElementById("introText").textContent = "(The Wizard taps his staff on the ground, a gust of wind blows, and he vanishes...)";
+
+
+  document.removeEventListener("click", advanceIntro);
+  document.removeEventListener("keydown", introKeyHandler);
+
+  player_coins = 60; 
+  updateCoinDisplays();
+  showScreen("dialogue");
+  updateDialogue(`Ah, welcome, ${player_name}. The forest is dark... but you are not alone.`);
+}
+
+// === CUTSCENES ===
+function showCutscene(text, onContinue) {
+  showScreen('cutsceneScreen');
+  animateSentences(splitSentences(text), "cutsceneText", function() {
+    // Show continue button after all sentences
+    const btn = document.getElementById('cutsceneButton');
+    btn.style.display = "block";
+    btn.onclick = function() {
+      btn.onclick = null;
+      btn.style.display = "none";
+      if (typeof onContinue === 'function') onContinue();
+    };
+  });
+  // Hide continue button until all sentences shown
+  document.getElementById('cutsceneButton').style.display = "none";
+}
+
+// For dialogue:
+function updateDialogue(text) {
+  document.getElementById("wizardText").textContent = text;
+}
+
+// Cutscene texts
+const wolfIntroText =
+`(A small clearing opens up in the forest. Adventurer stops and sets down his gear, deciding to make camp for the night.)
+ADVENTURER (to himself): At least I'll have some light for once.
+(As Adventurer eats a piece of dried bread, the sound of distant howling pierces the night air.)
+ADVENTURER (whispering): Wolves...
+(Suddenly, a pair of glowing red eyes appears just beyond the firelight. An EVIL WOLF steps into view.)
+EVIL WOLF (snapping): You dare light a fire in my woods, human?
+ADVENTURER: Your woods? I didn't realize I needed permission.
+EVIL WOLF: You'll pay for your insolence.`;
+
+const wolfOutroText =
+`(The Evil Wolf collapses into the brush, fading. Adventurer stands breathing heavily.)
+ADVENTURER (panting): That's the last of them... I hope.
+(Adventurer picks through the wolf's fur and finds an old amulet...)`;
+
+const evolvedIntroText =
+`(The path narrows and the light grows dim. A strange echo reverberates.)
+ADVENTURER (quietly): Something's different here...
+(From the shadows a malformed goblin emerges — bigger, meaner... evolved.)
+EVOLVED GOBLIN: You shouldn't have come here, human!`;
+
+const evolvedOutroText =
+`ADVENTURER (breathing heavily): Not long enough.
+(Adventurer looks at the fallen Goblin. He kneels down and notices a strange amulet around its neck, glowing faintly.)
+ADVENTURER (to himself): What's this?
+(Adventurer pockets the amulet and continues deeper into the forest.)`;
+
+const orcIntroText =
+`(The first light of dawn filters through the trees. Adventurer stretches as he awakens beside the remnants of his fire.)
+ADVENTURER (to himself): Still in one piece. That's a start.
+(Adventurer picks up his gear and moves to a nearby stream...)
+(CUT TO: A massive ORC steps out from behind a tree!)
+ORC: A lone wanderer? Easy prey.
+ADVENTURER: You'll find I'm not as easy as you think.`;
+
+const orcOutroText =
+`(After a brutal exchange, the Orc collapses.)
+ADVENTURER (catching his breath): That was close.
+(Adventurer hears distant howls... something familiar approaches...)`;
+
+const bigWolfIntroText =
+`(The ground trembles beneath him. A low growl rumbles from deep within the forest.)
+ADVENTURER (gritting his teeth): What now?
+(From the shadows of the trees, a massive figure emerges. The BIG WOLF steps into the clearing...)
+BIG WOLF: Foolish human... you think you can defy the forest and its guardians?`;
+
+const bigWolfOutroText =
+`(The massive wolf dissolves into motes of light; where it stood a shard glows.)
+ADVENTURER (softly): That shard... it pulses with strange energy.
+(Adventurer pockets the shard and heads onward.)`;
+
+const orcLordIntroText =
+`(The trees ahead part, and adventurer steps into a clearing. The ORC LORD appears—towering.)
+ORC LORD: Foolish human. You've come too far. This land belongs to me now.
+ADVENTURER: I've faced your kind before. You won't stop me.`;
+
+const breakDayText =
+`(EXT. FOREST CLEARING — DAY)
+(After the intense battle with the Orc Lord, adventurer stumbles upon a peaceful clearing...)
+ADVENTURER (quietly): One day. I can afford one day of rest.`;
+
+// === SHOP FUNCTIONS ===
+function updateShop() {
+  document.getElementById('coins').innerText = player_coins;
+  document.getElementById('playerHealthShop').innerText = player_health;
+  document.getElementById('playerMaxHealthShop').innerText = max_health;
+  
+  let items = document.getElementById("items");
+  items.innerHTML = "";
+
+  shopItems.forEach(item => {
+    let row = document.createElement('div');
+    row.className = 'shop-row';
+
+    let itemInfo = document.createElement('div');
+    itemInfo.className = 'item-info';
+    itemInfo.innerHTML = `<strong>${item.label}</strong><div class="price">${item.price} coins - ${item.description}</div>`;
+    row.appendChild(itemInfo);
+
+    let btn = document.createElement('button');
+    btn.textContent = 'Buy';
+    btn.disabled = (player_coins < item.price) || (item.unique && (item.name in player_inventory || (item.name === 'armour' && player_armour)));
+    btn.onclick = () => buyItem(item);
+    row.appendChild(btn);
+
+    items.appendChild(row);
+  });
+  updateInventoryUI();
+}
+
+function buyItem(item) {
+  if (player_coins < item.price) return;
+  if (item.unique && (item.name in player_inventory || (item.name === 'armour' && player_armour))) return;
+
+  player_coins -= item.price;
+
+  if (item.name === 'healthpotion') {
+    total_potion_uses += 3;
+    player_inventory['healthpotion'] = item.value;
+  } else if (item.name === 'armour') {
+    player_armour = true;
+    max_health = 220;
+    player_health = Math.min(player_health, max_health);
+  } else {
+    player_inventory[item.name] = item.value;
+    if (!(item.name in player_items_use_value)) player_items_use_value[item.name] = 0;
+  }
+  updateShop();
+}
+
+function toggleInventory() {
+  const inv = document.getElementById('inventorySection');
+  inv.style.display = inv.style.display === 'none' ? 'block' : 'none';
+  updateInventoryUI();
+}
+
+function updateInventoryUI() {
+  const ul = document.getElementById('inventoryList');
+  if (!ul) return;
+  ul.innerHTML = '';
+  
+  for (let item in player_inventory) {
+    let val = player_inventory[item];
+    const li = document.createElement('li');
+    let usesMsg = '';
+    
+    if (item === 'healthpotion') {
+      usesMsg = `${total_potion_uses} uses left`;
+    } else {
+      const used = player_items_use_value[item];
+      if (used === -1) usesMsg = `Unlimited uses`;
+      else usesMsg = `${used || 0}/3 uses`;
+    }
+    
+    li.textContent = `${item} (${val} ${item === 'healthpotion' ? 'heal' : 'dmg'}) - ${usesMsg}`;
+    ul.appendChild(li);
+  }
+  
+  if (player_armour) {
+    const li = document.createElement('li');
+    li.textContent = `Armour (equipped) - Max health: ${max_health}`;
+    ul.appendChild(li);
+  }
+}
+
+// === COMBAT FUNCTIONS ===
+function hasAnyWeapon() {
+  return Object.keys(player_inventory).some(
+    item => item !== 'healthpotion' && (player_items_use_value[item] === -1 || (player_items_use_value[item] || 0) < 3)
+  );
+}
+
+function resetWeaponUses() {
+  for (let w in player_items_use_value) {
+    if (player_items_use_value[w] !== -1) player_items_use_value[w] = 0;
+  }
+}
+
+function startEnemyPhase(enemyKey) {
+  if (!hasAnyWeapon()) {
+    if (!('fists' in player_inventory)) {
+      player_inventory['fists'] = 5;
+      player_items_use_value['fists'] = -1;
+    }
+  }
+
+  currentEnemy = enemyKey;
+  enemy_health = enemies[enemyKey].health;
+
+  for (let it in player_inventory) {
+    if (it !== 'healthpotion' && !(it in player_items_use_value)) player_items_use_value[it] = 0;
+  }
+
+  document.getElementById('enemyName').textContent = enemies[enemyKey].name;
+  updateCombatUI();
+  document.getElementById('combatLog').innerText = `⚔️ A ${enemies[enemyKey].name} appears!\n`;
+  showScreen('combat');
+  renderAttackOptions();
+}
+
+function updateCombatUI() {
+  // Update health bars and text
+  const playerHealthPercent = (player_health / max_health) * 100;
+  const enemyHealthPercent = (enemy_health / enemies[currentEnemy].health) * 100;
+  
+  document.getElementById('playerHealthBar').style.width = `${Math.max(0, playerHealthPercent)}%`;
+  document.getElementById('enemyHealthBar').style.width = `${Math.max(0, enemyHealthPercent)}%`;
+  
+  document.getElementById('playerHealthText').textContent = `${player_health}/${max_health}`;
+  document.getElementById('enemyHealthText').textContent = `${Math.max(0, enemy_health)}/${enemies[currentEnemy].health}`;
+  
+  document.getElementById('coinDisplay').textContent = player_coins;
+}
+
+function renderAttackOptions() {
+  const container = document.getElementById('attackOptions');
+  container.innerHTML = '';
+  
+  for (let item in player_inventory) {
+    if (item === 'healthpotion') continue;
+    const used = player_items_use_value[item];
+    const btn = document.createElement('button');
+    
+    let usesLabel = '';
+    if (used === -1) usesLabel = ' (∞)';
+    else usesLabel = ` (${used || 0}/3)`;
+    
+    btn.textContent = `${item}${usesLabel}`;
+    btn.disabled = (used !== -1 && used >= 3);
+    btn.onclick = () => attack(item);
+    container.appendChild(btn);
+  }
+}
+
+function usePotion() {
+  const log = document.getElementById('combatLog');
+  if ((player_inventory['healthpotion'] || 0) <= 0 || total_potion_uses <= 0) {
+    log.innerText += 'No potion uses left.\n';
+    return;
+  }
+  
+  const heal = player_inventory['healthpotion'];
+  total_potion_uses--;
+  player_health = Math.min(max_health, player_health + heal);
+  log.innerText += `🧪 You used a health potion and healed ${heal} HP. Current HP: ${player_health}\n`;
+  
+  updateCombatUI();
+  updateInventoryUI();
+}
+
+function attack(item) {
+  const log = document.getElementById('combatLog');
+  if (!(item in player_inventory)) return;
+  if (item === 'healthpotion') { usePotion(); return; }
+
+  const used = (player_items_use_value[item] === undefined) ? 0 : player_items_use_value[item];
+  if (used !== -1 && used >= 3) {
+    const availableOther = Object.keys(player_inventory).some(w => w !== 'healthpotion' && (player_items_use_value[w] === -1 || (player_items_use_value[w] || 0) < 3));
+    if (!availableOther) {
+      endGame('All your weapons are exhausted.');
+      return;
+    } else {
+      log.innerText += `${item} is exhausted. Use another weapon.\n`;
+      return;
+    }
+  }
+
+  const dmg = player_inventory[item];
+  enemy_health -= dmg;
+  if (player_items_use_value[item] !== -1) {
+    player_items_use_value[item] = (player_items_use_value[item] || 0) + 1;
+  }
+  
+  log.innerText += `⚔️ You attack with ${item} dealing ${dmg} damage!\n`;
+  log.innerText += `${enemies[currentEnemy].name} health: ${Math.max(0, enemy_health)}\n`;
+
+  if (enemy_health > 0) {
+    const atks = Object.entries(enemies[currentEnemy].attacks);
+    const atk = atks[Math.floor(Math.random() * atks.length)];
+    const atkName = atk[0], atkDmg = atk[1];
+    player_health -= atkDmg;
+    log.innerText += `💥 ${enemies[currentEnemy].name} used ${atkName} dealing ${atkDmg} damage!\n`;
+
+    if (player_health <= 0) {
+      endGame('You were defeated in battle.');
+      return;
+    }
+    
+    updateCombatUI();
+    updateInventoryUI();
+    renderAttackOptions();
+  } else {
+    player_coins += enemies[currentEnemy].reward;
+    log.innerText += `\n🎉 Victory! You defeated ${enemies[currentEnemy].name}!\n💰 You gained ${enemies[currentEnemy].reward} coins.\n`;
+    updateCombatUI();
+    handleEnemyDefeat(currentEnemy);
+  }
+}
+
+// === PROGRESSION ===
+function handleEnemyDefeat(enemyKey) {
+  resetWeaponUses();
+
+  if (enemyKey === 'goblin') {
+    showCutscene(wolfIntroText, () => startEnemyPhase('wolf'));
+    return;
+  }
+  if (enemyKey === 'wolf') {
+    showCutscene(wolfOutroText, () => showScreen('shopDecision2'));
+    return;
+  }
+  if (enemyKey === 'evolved') {
+    showCutscene(evolvedOutroText, () => {
+      showCutscene(orcIntroText, () => startEnemyPhase('orc'));
+    });
+    return;
+  }
+  if (enemyKey === 'orc') {
+    showCutscene(orcOutroText, () => {
+      showCutscene(bigWolfIntroText, () => startEnemyPhase('bigwolf'));
+    });
+    return;
+  }
+  if (enemyKey === 'bigwolf') {
+    showCutscene(bigWolfOutroText, () => {
+      showCutscene(orcLordIntroText, () => startEnemyPhase('orc_lord'));
+    });
+    return;
+  }
+  if (enemyKey === 'orc_lord') {
+    showCutscene(breakDayText, () => showScreen('shopDecision3'));
+    return;
+  }
+  if (enemyKey === 'dragon') {
+    showScreen('win');
+    return;
+  }
+}
+
+// === SHOP DECISIONS ===
+function enterSecondShop() {
+  showScreen('shop');
+  updateShop();
+  currentEnemy = 'evolved';
+}
+
+function skipToOrc() {
+  showCutscene(orcIntroText, () => startEnemyPhase('orc'));
+}
+
+function enterThirdShop() {
+  showScreen('shop');
+  updateShop();
+  currentEnemy = 'dragon';
+}
+
+function fightDragon() {
+  startEnemyPhase('dragon');
+}
+
+function goToShop() {
+  showScreen('shop');
+  updateShop();
+  currentEnemy = 'goblin';
+}
+
+function exitShop() {
+  if (!hasAnyWeapon()) {
+    if (!('fists' in player_inventory)) {
+      player_inventory['fists'] = 5;
+      player_items_use_value['fists'] = -1;
+    }
+  }
+
+  if (currentEnemy && enemies[currentEnemy]) {
+    startEnemyPhase(currentEnemy);
+  } else {
+    startEnemyPhase('goblin');
+  }
+}
+
+// === UTILITIES ===
+function endGame(reason) {
+  player_health = 0;
+  document.getElementById('gameoverMessage').innerText = reason;
+  showScreen('gameover');
+}
+
+function updateCoinDisplays() {
+  const coinsEl = document.getElementById('coins');
+  if (coinsEl) coinsEl.innerText = player_coins;
+  const cd = document.getElementById('coinDisplay');
+  if (cd) cd.innerText = player_coins;
+  const shopHealth = document.getElementById('playerHealthShop');
+  if (shopHealth) shopHealth.innerText = player_health;
+  const shopMaxHealth = document.getElementById('playerMaxHealthShop');
+  if (shopMaxHealth) shopMaxHealth.innerText = max_health;
+}
+
+// === EVENT LISTENERS ===
+document.getElementById('playerNameInput')?.addEventListener('keydown', function(e){
+  if (e.key === 'Enter') submitName();
+});
+
+window.onload = function() {
+  updateCoinDisplays();
+};
+</script>
+</body>
+</html>
